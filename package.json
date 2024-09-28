@@ -1,0 +1,35 @@
+{
+  "name": "icnix-bot",
+  "version": "0.1.0",
+  "description": "",
+  "author": "harhspatel5940",
+  "keywords": [],
+  "main": "build/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "NODE_ENV=production node build/index.js",
+    "build": "pnpm build:clean && esbuild src/**/*.ts src/*.ts --outdir=build --platform=node --format=cjs",
+    "build:clean": "rm -rf ./build ",
+    "dev": "pnpm build:clean && tsc-watch --onSuccess \"node build/index.js\"",
+    "format": "biome check --write .",
+    "lint": "biome check .",
+    "format:check": "prettier --check src/*.ts src/**/*.ts"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.2",
+    "dotenv": "^16.4.5",
+    "glob": "^11.0.0",
+    "mongodb": "^6.9.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.2",
+    "@types/node": "^22.7.4",
+    "tsc-watch": "^6.2.0",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=18.*"
+  },
+  "pre-commit": ["format"]
+}

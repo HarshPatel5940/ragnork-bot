@@ -18,6 +18,7 @@
   "dependencies": {
     "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
+    "esbuild": "^0.24.0",
     "glob": "^11.0.0",
     "mongodb": "^6.9.0",
     "zod": "^3.23.8"
@@ -31,5 +32,7 @@
   "engines": {
     "node": ">=18.*"
   },
-  "pre-commit": ["format"]
+  "pre-commit": [
+    "format"
+  ]
 }

@@ -1,0 +1,27 @@
+services:
+  server:
+    build:
+      context: .
+    environment:
+      NODE_ENV: production
+    networks:
+      - my_network
+  db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    restart: always
+    volumes:
+      - db-data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ragnork
+      MONGO_INITDB_ROOT_PASSWORD: harshpatel
+    networks:
+      - my_network
+
+volumes:
+  db-data:
+
+networks:
+  my_network:
+    driver: bridge

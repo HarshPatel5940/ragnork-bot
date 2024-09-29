@@ -18,6 +18,24 @@ import type { MatchType } from "../types/match";
 import type { Command } from "../interface";
 import { MyEmojis } from "../types/emojis";
 
+const GameClasses = {
+  scholar: "🇸​​🇨​​🇭​​🇴​​🇱​​🇦​​🇷​ - Scholar",
+  champion: "​🇨​​🇭​​🇦​​🇲​​🇵​​🇮​​🇺​​🇳​ - Champion",
+  paladin: "​🇵​​🇦​​🇱​​🇦​​🇩​​🇮​​🇳​ - Paladin",
+  high_priest: "​🇭​​🇮​​🇬​​🇭​ 🇵​​🇷​​🇮​​🇪​​🇸​​🇹​ - High Priest",
+  high_wizard: "🇭​​🇮​​🇬​​🇭​ ​🇼​​🇮​​🇿​​🇦​​🇷​​🇩 - High Wizard",
+  minstrel: "​🇲​​🇮​​🇳​​🇸​​🇹​​🇷​​🇪​​🇱 - Minstrel",
+};
+
+const GameClasses2 = {
+  scholar: "Scholar",
+  champion: "Champion",
+  paladin: "Paladin",
+  high_priest: "High Priest",
+  high_wizard: "High Wizard",
+  minstrel: "Minstrel",
+};
+
 export default {
   data: new SlashCommandBuilder()
     .setName("início-jogo")
@@ -50,6 +68,46 @@ export default {
       .setDescription(`${MyEmojis.Sparkels} Escolha uma classe para começar.`)
       .setColor(Colors.Green)
       .setFooter({ text: `ID do jogo - ${matchID}` })
+      .addFields([
+        {
+          name: GameClasses2.scholar,
+          value: "Ninguém se juntou ainda",
+          inline: true,
+        },
+        {
+          name: GameClasses2.champion,
+          value: "Ninguém se juntou ainda",
+          inline: true,
+        },
+        {
+          name: GameClasses2.paladin,
+          value: "Ninguém se juntou ainda",
+          inline: true,
+        },
+        {
+          name: GameClasses2.high_priest,
+          value: "Ninguém se juntou ainda",
+          inline: true,
+        },
+        {
+          name: GameClasses2.high_wizard,
+          value: "Ninguém se juntou ainda",
+          inline: true,
+        },
+        {
+          name: GameClasses2.minstrel,
+          value: "Ninguém se juntou ainda",
+          inline: true,
+        },
+        {
+          name: "O jogo começou?",
+          value: "Não",
+          inline: false,
+        },
+      ])
+      .setThumbnail(
+        "https://cdn.discordapp.com/icons/1178394769173528576/5ce1d932838ec68d08d84e14c6cb246c.png?size=4096",
+      )
       .setTimestamp();
 
     const dropdown = new StringSelectMenuBuilder()
@@ -57,27 +115,27 @@ export default {
       .setPlaceholder("Escolha uma classe")
       .addOptions([
         {
-          label: "🇸​​🇨​​🇭​​🇴​​🇱​​🇦​​🇷​ - Scholar",
+          label: GameClasses.scholar,
           value: "scholar",
         },
         {
-          label: "​🇨​​🇭​​🇦​​🇲​​🇵​​🇮​​🇺​​🇳​ - Champion",
+          label: GameClasses.champion,
           value: "champion",
         },
         {
-          label: "​🇵​​🇦​​🇱​​🇦​​🇩​​🇮​​🇳​ - Paladin",
+          label: GameClasses.paladin,
           value: "paladin",
         },
         {
-          label: "​🇭​​🇮​​🇬​​🇭​ ​🇵​​🇷​​🇮​​🇪​​🇸​​🇹​ - High Priest",
+          label: GameClasses.high_priest,
           value: "high_priest",
         },
         {
-          label: "🇭​​🇮​​🇬​​🇭​ ​🇼​​🇮​​🇿​​🇦​​🇷​​🇩 - High Wizard",
+          label: GameClasses.high_wizard,
           value: "high_wizard",
         },
         {
-          label: "​🇲​​🇮​​🇳​​🇸​​🇹​​🇷​​🇪​​🇱 - Minstrel",
+          label: GameClasses.minstrel,
           value: "minstrel",
         },
       ]);
@@ -121,7 +179,7 @@ export default {
     });
 
     await message.edit({
-      content: `Jogo iniciado com sucesso! Escolha uma classe para começar.\nID do jogo - ${matchID}`,
+      content: `## Jogo iniciado com sucesso! \nEscolha uma classe para começar.\n> ID do jogo - \`${matchID}\``,
       embeds: [embed],
       components: [actionRow],
     });

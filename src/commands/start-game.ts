@@ -1,22 +1,17 @@
 import {
   ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   ChannelType,
   type ChatInputCommandInteraction,
   Colors,
   EmbedBuilder,
-  PermissionFlagsBits,
-  SelectMenuBuilder,
   SlashCommandBuilder,
-  type SlashCommandChannelOption,
   StringSelectMenuBuilder,
 } from "discord.js";
 import { ulid } from "ulid";
-import db from "../utils/database";
-import type { MatchType } from "../types/match";
 import type { Command } from "../interface";
 import { MyEmojis } from "../types/emojis";
+import type { MatchType } from "../types/match";
+import db from "../utils/database";
 
 const GameClasses = {
   scholar: "🇸​​🇨​​🇭​​🇴​​🇱​​🇦​​🇷​ - Scholar",
@@ -116,27 +111,27 @@ export default {
       .addOptions([
         {
           label: GameClasses.scholar,
-          value: "scholar",
+          value: `g-scholar-${matchID}`,
         },
         {
           label: GameClasses.champion,
-          value: "champion",
+          value: `g-champion-${matchID}`,
         },
         {
           label: GameClasses.paladin,
-          value: "paladin",
+          value: `g-paladin-${matchID}`,
         },
         {
           label: GameClasses.high_priest,
-          value: "high_priest",
+          value: `g-high_priest-${matchID}`,
         },
         {
           label: GameClasses.high_wizard,
-          value: "high_wizard",
+          value: `g-high_wizard-${matchID}`,
         },
         {
           label: GameClasses.minstrel,
-          value: "minstrel",
+          value: `g-minstrel-${matchID}`,
         },
       ]);
 
@@ -152,6 +147,7 @@ export default {
       matchMsgChannel: interaction.channelId,
       matchMsgId: message.id,
 
+      matchPlayers: [],
       team1: [],
       team2: [],
 

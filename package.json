@@ -33,7 +33,5 @@
   "engines": {
     "node": ">=18.*"
   },
-  "pre-commit": [
-    "format"
-  ]
+  "pre-commit": ["format"]
 }

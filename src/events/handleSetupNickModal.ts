@@ -1,7 +1,7 @@
-import { Emoji, Events, GuildEmoji, type Interaction } from "discord.js";
-import type { DiscordUser } from "../types";
-import db from "../utils/database";
-import { MyEmojis } from "../types/emojis";
+import { Emoji, Events, GuildEmoji, type Interaction } from 'discord.js';
+import type { DiscordUser } from '../types';
+import { MyEmojis } from '../types/emojis';
+import db from '../utils/database';
 
 export default {
   name: Events.InteractionCreate,
@@ -10,13 +10,13 @@ export default {
   async execute(interaction: Interaction) {
     if (!interaction.isModalSubmit()) return;
     if (!interaction.guild) return;
-    if (!interaction.customId.startsWith("add-nickname-")) return;
+    if (!interaction.customId.startsWith('add-nickname-')) return;
     await interaction.deferReply({ ephemeral: true });
 
-    const name = interaction.fields.getTextInputValue("add-nick-t");
+    const name = interaction.fields.getTextInputValue('add-nick-t');
     try {
       const data = await (await db())
-        .collection<DiscordUser>("discord-users")
+        .collection<DiscordUser>('discord-users')
         .findOneAndUpdate(
           { userId: interaction.user.id },
           {
@@ -25,7 +25,7 @@ export default {
 
               InGameUsername: name,
               InGameScore: 0,
-              InGameRank: "Ferro1",
+              InGameRank: 'Ferro1',
               isActive: false,
 
               GamesPlayed: 0,
@@ -36,7 +36,7 @@ export default {
               updatedAt: new Date(),
             },
           },
-          { upsert: true, returnDocument: "after" },
+          { upsert: true, returnDocument: 'after' },
         );
 
       await interaction.editReply({
@@ -46,7 +46,7 @@ export default {
       console.error(error);
       await interaction.editReply({
         content:
-          "Ocorreu um erro ao registrar seu apelido. Por favor, tente novamente.",
+          'Ocorreu um erro ao registrar seu apelido. Por favor, tente novamente.',
       });
     }
     return;

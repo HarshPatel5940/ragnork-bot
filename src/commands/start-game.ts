@@ -10,26 +10,8 @@ import {
 import { ulid } from "ulid";
 import type { Command } from "../interface";
 import { MyEmojis } from "../types/emojis";
-import type { MatchType } from "../types/match";
+import { playerClasses, playerClasses2, type MatchType } from "../types/match";
 import db from "../utils/database";
-
-const GameClasses = {
-  scholar: "🇸​​🇨​​🇭​​🇴​​🇱​​🇦​​🇷​ - Scholar",
-  champion: "​🇨​​🇭​​🇦​​🇲​​🇵​​🇮​​🇺​​🇳​ - Champion",
-  paladin: "​🇵​​🇦​​🇱​​🇦​​🇩​​🇮​​🇳​ - Paladin",
-  high_priest: "​🇭​​🇮​​🇬​​🇭​ 🇵​​🇷​​🇮​​🇪​​🇸​​🇹​ - High Priest",
-  high_wizard: "🇭​​🇮​​🇬​​🇭​ ​🇼​​🇮​​🇿​​🇦​​🇷​​🇩 - High Wizard",
-  minstrel: "​🇲​​🇮​​🇳​​🇸​​🇹​​🇷​​🇪​​🇱 - Minstrel",
-};
-
-const GameClasses2 = {
-  scholar: "Scholar",
-  champion: "Champion",
-  paladin: "Paladin",
-  high_priest: "High Priest",
-  high_wizard: "High Wizard",
-  minstrel: "Minstrel",
-};
 
 export default {
   data: new SlashCommandBuilder()
@@ -65,35 +47,40 @@ export default {
       .setFooter({ text: `ID do jogo - ${matchID}` })
       .addFields([
         {
-          name: GameClasses2.scholar,
+          name: playerClasses2.scholar,
           value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
-          name: GameClasses2.champion,
+          name: playerClasses2.champion,
           value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
-          name: GameClasses2.paladin,
+          name: playerClasses2.paladin,
           value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
-          name: GameClasses2.high_priest,
+          name: playerClasses2.high_priest,
           value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
-          name: GameClasses2.high_wizard,
+          name: playerClasses2.high_wizard,
           value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
-          name: GameClasses2.minstrel,
+          name: playerClasses2.minstrel,
           value: "Ninguém se juntou ainda",
           inline: true,
         },
+        {
+          name: playerClasses2.wildCardClass,
+          value: "Ninguém se juntou ainda",
+          inline: true,
+        }
         {
           name: "O jogo começou?",
           value: "Não",
@@ -110,28 +97,32 @@ export default {
       .setPlaceholder("Escolha uma classe")
       .addOptions([
         {
-          label: GameClasses.scholar,
+          label: playerClasses.scholar,
           value: `g-scholar-${matchID}`,
         },
         {
-          label: GameClasses.champion,
+          label: playerClasses.champion,
           value: `g-champion-${matchID}`,
         },
         {
-          label: GameClasses.paladin,
+          label: playerClasses.paladin,
           value: `g-paladin-${matchID}`,
         },
         {
-          label: GameClasses.high_priest,
+          label: playerClasses.high_priest,
           value: `g-high_priest-${matchID}`,
         },
         {
-          label: GameClasses.high_wizard,
+          label: playerClasses.high_wizard,
           value: `g-high_wizard-${matchID}`,
         },
         {
-          label: GameClasses.minstrel,
+          label: playerClasses.minstrel,
           value: `g-minstrel-${matchID}`,
+        },
+        {
+          label: playerClasses.wildCardClass,
+          value: `g-wild-${matchID}`,
         },
       ]);
 
@@ -148,10 +139,11 @@ export default {
       matchMsgId: message.id,
 
       matchPlayers: [],
-      team1: [],
-      team2: [],
+      redTeam: [],
+      blueTeam: [],
 
       isStarted: false,
+      isAborted: false,
       isDraw: false,
       isCompleted: false,
 

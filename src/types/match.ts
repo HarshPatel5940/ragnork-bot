@@ -1,31 +1,27 @@
-import { ObjectId } from "mongodb";
-import { z } from "zod";
+import { ObjectId } from 'mongodb';
+import { z } from 'zod';
 
 export const playerClasses = {
-  scholar: "🇸​​🇨​​🇭​​🇴​​🇱​​🇦​​🇷​ - Scholar",
-  champion: "​🇨​​🇭​​🇦​​🇲​​🇵​​🇮​​🇺​​🇳​ - Champion",
-  paladin: "​🇵​​🇦​​🇱​​🇦​​🇩​​🇮​​🇳​ - Paladin",
-  high_priest: "​🇭​​🇮​​🇬​​🇭​ 🇵​​🇷​​🇮​​🇪​​🇸​​🇹​ - High Priest",
-  high_wizard: "🇭​​🇮​​🇬​​🇭​ ​🇼​​🇮​​🇿​​🇦​​🇷​​🇩 - High Wizard",
-  minstrel: "​🇲​​🇮​​🇳​​🇸​​🇹​​🇷​​🇪​​🇱 - Minstrel",
-  wildCardClass: "🃏 - Wild Card" as wildCardClassType,
+  scholar: '🇸​​🇨​​🇭​​🇴​​🇱​​🇦​​🇷​ - Scholar',
+  champion: '​🇨​​🇭​​🇦​​🇲​​🇵​​🇮​​🇺​​🇳​ - Champion',
+  paladin: '​🇵​​🇦​​🇱​​🇦​​🇩​​🇮​​🇳​ - Paladin',
+  high_priest: '​🇭​​🇮​​🇬​​🇭​ 🇵​​🇷​​🇮​​🇪​​🇸​​🇹​ - High Priest',
+  high_wizard: '🇭​​🇮​​🇬​​🇭​ ​🇼​​🇮​​🇿​​🇦​​🇷​​🇩 - High Wizard',
+  minstrel: '​🇲​​🇮​​🇳​​🇸​​🇹​​🇷​​🇪​​🇱 - Minstrel',
+  wildCardClass: '🃏 - Wild Card' as wildCardClassType,
 };
 
 export const playerClasses2 = {
-  scholar: "Scholar",
-  champion: "Champion",
-  paladin: "Paladin",
-  high_priest: "High Priest",
-  high_wizard: "High Wizard",
-  minstrel: "Minstrel",
-  wildCardClass: "Wild Cards",
+  scholar: 'Scholar',
+  champion: 'Champion',
+  paladin: 'Paladin',
+  high_priest: 'High Priest',
+  high_wizard: 'High Wizard',
+  minstrel: 'Minstrel',
+  wildCardClass: 'Wild Cards',
 };
 
-export type wildCardClassType =
-  | "Gypsy"
-  | "Stalker"
-  | "Sniper"
-  | "🃏 - Wild Card";
+export type wildCardClassType = 'gypsy' | 'stalker' | 'sniper' | 'wild_cards';
 
 export type PlayerClassesType = keyof typeof playerClasses2 | wildCardClassType;
 
@@ -35,6 +31,7 @@ export const PlayerSchema = z.object({
   PlayerClass: z.enum(
     Object.keys(playerClasses2) as [PlayerClassesType, ...PlayerClassesType[]],
   ),
+  PlayerMiscInfo: z.string().optional(),
 });
 
 export type PlayerType = z.infer<typeof PlayerSchema>;
@@ -51,7 +48,7 @@ export const MatchSchema = z.object({
   redTeam: z.array(PlayerSchema).max(7),
   blueTeam: z.array(PlayerSchema).max(7),
 
-  winner: z.enum(["Team Red", "Team Blue", "Draw"]).optional(),
+  winner: z.enum(['Team Red', 'Team Blue', 'Draw']).optional(),
 
   isStarted: z.boolean().optional().default(false),
   isAborted: z.boolean().optional().default(false),

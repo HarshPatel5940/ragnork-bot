@@ -1,12 +1,13 @@
 import {
   ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  Colors,
+  EmbedBuilder,
   Events,
   type Interaction,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
 } from 'discord.js';
-import type { MatchType } from '../types/match';
+import type { MatchType, PlayerClassesType, PlayerType } from '../types/match';
 import db from '../utils/database';
 
 export default {
@@ -20,12 +21,11 @@ export default {
     if (!interaction.customId.startsWith('game-')) return;
     await interaction.deferReply({ ephemeral: true });
 
-    const GameID = interaction.customId.split('-')[-1];
     const interactionValues = interaction.values[0];
-    console.log(interactionValues);
     if (!interactionValues) return;
-    console.log(interactionValues);
-    const classSelected = interactionValues.split('-')[1];
+    const splitedInteractionValues = interactionValues.split('-');
+    const classSelected = splitedInteractionValues[1] as PlayerClassesType;
+    const GameID = splitedInteractionValues[2];
     if (!classSelected) {
       await interaction.editReply({
         content: 'Classe não encontrada.',
@@ -33,7 +33,7 @@ export default {
       return;
     }
 
-    const msg = await interaction.editReply({
+    await interaction.editReply({
       content: `Você escolheu a classe ${classSelected}!\ngameID: ${GameID}`,
     });
 
@@ -57,30 +57,181 @@ export default {
       return;
     }
 
-    if (matchData.matchPlayers.length === 14) {
+    if (matchData.matchPlayers.length >= 14) {
       await interaction.editReply({
         content: 'O jogo já está cheio.',
       });
       await interaction.message.edit({ components: [] });
+      // TODO: We need to start the game here so show the start button and leave button and abort button (for owner)
       return;
     }
 
-    const classCount = new Map<string, number>();
+    const classCount = new Map<PlayerClassesType, number>();
+    let oldClassofPlayer = '';
 
     for (const player of matchData.matchPlayers) {
-      if (classCount.has(player.PlayerClass)) {
-        let count = classCount.get(player.PlayerClass);
-        if (!count) {
-          count = 0;
-        }
-        classCount.set(player.PlayerClass, count + 1);
-      } else {
-        classCount.set(player.PlayerClass, 1);
+      if (player.PlayerID === interaction.user.id) {
+        oldClassofPlayer = player.PlayerClass;
+        matchData.matchPlayers = matchData.matchPlayers.filter(
+          p => p.PlayerID !== interaction.user.id,
+        );
       }
+      const count = classCount.get(player.PlayerClass) || 0;
+      classCount.set(player.PlayerClass, count + 1);
     }
 
-    // TODO: now based on the count procceed to add the player to the teams and proceed with discussed logic
+    if ((classCount.get(classSelected) || 0) >= 2) {
+      await interaction.editReply({
+        content: 'Classe já escolhida. Por favor, escolha outra classe.',
+      });
+      return;
+    }
 
+    if (classSelected === 'wild_cards') {
+      const wildCardCount = (classCount.get('wild_cards') || 0) + 1;
+      if (wildCardCount > 2) {
+        await interaction.editReply({
+          content: 'Classe já escolhida. Por favor, escolha outra classe.',
+        });
+        return;
+      }
+
+      const wildCardActionRow =
+        new ActionRowBuilder<ButtonBuilder>().addComponents([
+          new ButtonBuilder()
+            .setCustomId(`game-gypsy-${GameID}`)
+            .setLabel('gypsy')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId(`game-stalker-${GameID}`)
+            .setLabel('stalker')
+            .setStyle(ButtonStyle.Secondary),
+          new ButtonBuilder()
+            .setCustomId(`game-sniper-${GameID}`)
+            .setLabel('sniper')
+            .setStyle(ButtonStyle.Secondary),
+        ]);
+
+      // Intensionally not waiting here :D
+      // TODO: handle this later
+      interaction.followUp({
+        content: 'Escolha uma das classes Wild Card abaixo',
+        ephemeral: true,
+        components: [wildCardActionRow],
+      });
+    }
+
+    const player = {
+      PlayerClass: classSelected,
+      PlayerID: interaction.user.id,
+      PlayerName: interaction.user.username,
+    } as PlayerType;
+
+    matchData.matchPlayers.push(player);
+
+    const updatedMatchData = await (await db())
+      .collection<MatchType>('games')
+      .updateOne(
+        {
+          matchId: GameID,
+        },
+        {
+          $set: {
+            matchPlayers: matchData.matchPlayers,
+            updatedAt: new Date(),
+          },
+        },
+      );
+
+    if (updatedMatchData.modifiedCount === 0) {
+      await interaction.editReply({
+        content: 'Erro ao atualizar o jogo.',
+      });
+      return;
+    }
+
+    await interaction.editReply({
+      content: `Você foi adicionado à **classe ${classSelected}**.\nVamos esperar até que todos entrem no jogo - \`${GameID}\``,
+    });
+
+    const oldEmbed = interaction.message.embeds[0];
+    if (!oldEmbed) {
+      await interaction.editReply({
+        content: 'Erro ao atualizar o jogo.',
+      });
+      return;
+    }
+
+    let newEmbedFields = oldEmbed.fields;
+    newEmbedFields = newEmbedFields.map(field => {
+      if (field.name.toLowerCase() === oldClassofPlayer.replace('_', ' ')) {
+        const tClass = field.name
+          .toLowerCase()
+          .replace(' ', '_') as PlayerClassesType;
+
+        if (classCount.get(tClass) === 1) {
+          field.value = 'Ninguém se juntou ainda';
+        } else {
+          field.value = field.value.replace(
+            `- ${interaction.user.username}\n`,
+            '',
+          );
+        }
+      }
+
+      if (field.name.toLowerCase() === classSelected.replace('_', ' ')) {
+        if (field.value.startsWith('Ninguém')) {
+          field.value = '';
+        }
+
+        return {
+          name: field.name,
+          value: `${field.value}- ${interaction.user.username}\n`,
+          inline: true,
+        };
+      }
+      return field;
+    });
+
+    let newEmbed = new EmbedBuilder()
+      .setTitle(oldEmbed.title)
+      .setDescription(oldEmbed.description)
+      .setColor(oldEmbed.color)
+      .setFooter({
+        text: oldEmbed.footer?.text || `ID do jogo - ${GameID}`,
+      })
+      .addFields(newEmbedFields)
+      .setTimestamp();
+
+    if (matchData.matchPlayers.length + 1 >= 14) {
+      newEmbed = newEmbed.setColor(Colors.Green);
+      const startButton = new ButtonBuilder()
+        .setCustomId(`game-start-${GameID}`)
+        .setLabel('Iniciar Jogo')
+        .setStyle(ButtonStyle.Success);
+
+      const abortButton = new ButtonBuilder()
+        .setCustomId(`game-abort-${GameID}`)
+        .setLabel('Cancelar Jogo')
+        .setStyle(ButtonStyle.Danger)
+        .setDisabled(true);
+
+      await interaction.message.edit({
+        content: 'O jogo está pronto para começar!',
+        components: [
+          new ActionRowBuilder<ButtonBuilder>().addComponents([
+            startButton,
+            abortButton,
+          ]),
+        ],
+        embeds: [newEmbed],
+      });
+      return;
+    }
+
+    await interaction.message.edit({
+      embeds: [newEmbed],
+    });
     return;
   },
 };

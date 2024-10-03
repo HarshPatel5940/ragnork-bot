@@ -8,6 +8,7 @@ import {
   Events,
   type Interaction,
   ModalBuilder,
+  StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
@@ -51,6 +52,23 @@ export default {
       .setCustomId(`game-abort-${GameID}`)
       .setLabel('Cancelar Jogo')
       .setStyle(ButtonStyle.Danger);
+
+    const dropdown = new StringSelectMenuBuilder()
+      .setCustomId(`game-win-${GameID}`)
+      .setPlaceholder('Escolha uma classe')
+      .addOptions([
+        {
+          label: 'Declarar o vencedor da equipe vermelha',
+          value: `game-win-red-${GameID}`,
+          emoji: '🔴',
+        },
+
+        {
+          label: 'Declarar o vencedor da equipe azul',
+          value: `game-win-blue-${GameID}`,
+          emoji: '🔵',
+        },
+      ]);
 
     if (matchData.isStarted) {
       await interaction.editReply({
@@ -122,7 +140,6 @@ export default {
       });
       return;
     }
-    console.trace();
     const prevEmbedFields = prevEmbed.fields;
 
     const redTeamPlayers = redTeam
@@ -131,17 +148,19 @@ export default {
       })
       .join('\n');
 
-    const blueTeamPlayers = blueTeam
-      .map(player => {
-        return `${player.PlayerName} - ${player.PlayerClass}`;
-      })
-      .join('\n');
+    const blueTeamPlayers =
+      blueTeam
+        .map(player => {
+          return `${player.PlayerName} - ${player.PlayerClass}`;
+        })
+        .join('\n') || ' ';
 
-    const redTeamMention = redTeam
-      .map(player => {
-        return `<@${player.PlayerID}>`;
-      })
-      .join(', ');
+    const redTeamMention =
+      redTeam
+        .map(player => {
+          return `<@${player.PlayerID}>`;
+        })
+        .join(', ') || ' ';
 
     const blueTeamMention = blueTeam
       .map(player => {
@@ -149,31 +168,36 @@ export default {
       })
       .join(', ');
 
-    const newEmbed = new EmbedBuilder()
+    const embed = new EmbedBuilder()
       .setTitle('Jogo Iniciado!')
       .setDescription(`${prevEmbed.description}`)
       .setColor(prevEmbed.color)
-      .setFields([
-        ...prevEmbedFields,
-        {
-          name: 'Red Team',
-          value: redTeamPlayers,
-          inline: false,
-        },
-        {
-          name: 'Blue Team',
-          value: blueTeamPlayers,
-          inline: false,
-        },
-      ]);
-    console.trace();
+      .setFields(prevEmbedFields);
+
+    const newEmbed = new EmbedBuilder().addFields(
+      {
+        name: 'Red Team',
+        value: redTeamPlayers,
+        inline: false,
+      },
+      {
+        name: 'Blue Team',
+        value: blueTeamPlayers,
+        inline: false,
+      },
+    );
+
     await interaction.message.edit({
       content: `Red Team: ${redTeamMention}\nBlue Team: ${blueTeamMention}`,
-      embeds: [newEmbed],
+      embeds: [embed, newEmbed],
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents([
           startButton.setDisabled(true),
           abortButton,
+        ]),
+
+        new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+          dropdown,
         ]),
       ],
     });

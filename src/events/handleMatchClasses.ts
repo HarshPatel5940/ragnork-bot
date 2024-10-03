@@ -7,6 +7,7 @@ import {
   Events,
   type Interaction,
 } from 'discord.js';
+import type { DiscordUser } from '../types';
 import type { MatchType, PlayerClassesType, PlayerType } from '../types/match';
 import db from '../utils/database';
 
@@ -36,6 +37,17 @@ export default {
     await interaction.editReply({
       content: `Você escolheu a classe ${classSelected}!\ngameID: ${GameID}`,
     });
+
+    const playerData = await (await db())
+      .collection<DiscordUser>('discord-users')
+      .findOne({ userId: interaction.user.id });
+
+    if (!playerData) {
+      await interaction.editReply({
+        content: 'Perfil não encontrado! Por favor, registre sua conta.',
+      });
+      return;
+    }
 
     const matchData = await (await db())
       .collection<MatchType>('games')
@@ -124,7 +136,7 @@ export default {
     const player = {
       PlayerClass: classSelected,
       PlayerID: interaction.user.id,
-      PlayerName: interaction.user.username,
+      PlayerName: playerData.InGameUsername,
     } as PlayerType;
 
     matchData.matchPlayers.push(player);
@@ -203,7 +215,7 @@ export default {
       .addFields(newEmbedFields)
       .setTimestamp();
 
-    if (matchData.matchPlayers.length + 1 >= 14) {
+    if (matchData.matchPlayers.length + 1 >= 1) {
       newEmbed = newEmbed.setColor(Colors.Green);
       const startButton = new ButtonBuilder()
         .setCustomId(`game-start-${GameID}`)

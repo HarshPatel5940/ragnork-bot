@@ -6,9 +6,9 @@ import {
   EmbedBuilder,
   Events,
   type Interaction,
-} from 'discord.js';
-import type { MatchType, PlayerClassesType, PlayerType } from '../types/match';
-import db from '../utils/database';
+} from "discord.js";
+import type { MatchType, PlayerClassesType, PlayerType } from "../types/match";
+import db from "../utils/database";
 
 export default {
   name: Events.InteractionCreate,
@@ -18,17 +18,17 @@ export default {
     if (!interaction.isStringSelectMenu()) return;
     if (!interaction.guild) return;
     if (!interaction.message) return;
-    if (!interaction.customId.startsWith('game-')) return;
+    if (!interaction.customId.startsWith("game-")) return;
     await interaction.deferReply({ ephemeral: true });
 
     const interactionValues = interaction.values[0];
     if (!interactionValues) return;
-    const splitedInteractionValues = interactionValues.split('-');
+    const splitedInteractionValues = interactionValues.split("-");
     const classSelected = splitedInteractionValues[1] as PlayerClassesType;
     const GameID = splitedInteractionValues[2];
     if (!classSelected) {
       await interaction.editReply({
-        content: 'Classe não encontrada.',
+        content: "Classe não encontrada.",
       });
       return;
     }
@@ -38,12 +38,12 @@ export default {
     });
 
     const matchData = await (await db())
-      .collection<MatchType>('games')
+      .collection<MatchType>("games")
       .findOne({ matchId: GameID });
 
     if (!matchData) {
       await interaction.editReply({
-        content: 'Jogo não encontrado.',
+        content: "Jogo não encontrado.",
       });
       await interaction.message.delete();
       return;
@@ -51,7 +51,7 @@ export default {
 
     if (matchData.isStarted) {
       await interaction.editReply({
-        content: 'O jogo já começou.',
+        content: "O jogo já começou.",
       });
       await interaction.message.edit({ components: [] });
       return;
@@ -59,7 +59,7 @@ export default {
 
     if (matchData.matchPlayers.length >= 14) {
       await interaction.editReply({
-        content: 'O jogo já está cheio.',
+        content: "O jogo já está cheio.",
       });
       await interaction.message.edit({ components: [] });
       // TODO: We need to start the game here so show the start button and leave button and abort button (for owner)
@@ -67,13 +67,13 @@ export default {
     }
 
     const classCount = new Map<PlayerClassesType, number>();
-    let oldClassofPlayer = '';
+    let oldClassofPlayer = "";
 
     for (const player of matchData.matchPlayers) {
       if (player.PlayerID === interaction.user.id) {
         oldClassofPlayer = player.PlayerClass;
         matchData.matchPlayers = matchData.matchPlayers.filter(
-          p => p.PlayerID !== interaction.user.id,
+          (p) => p.PlayerID !== interaction.user.id,
         );
       }
       const count = classCount.get(player.PlayerClass) || 0;
@@ -82,16 +82,16 @@ export default {
 
     if ((classCount.get(classSelected) || 0) >= 2) {
       await interaction.editReply({
-        content: 'Classe já escolhida. Por favor, escolha outra classe.',
+        content: "Classe já escolhida. Por favor, escolha outra classe.",
       });
       return;
     }
 
-    if (classSelected === 'wild_cards') {
-      const wildCardCount = (classCount.get('wild_cards') || 0) + 1;
+    if (classSelected === "wild_cards") {
+      const wildCardCount = (classCount.get("wild_cards") || 0) + 1;
       if (wildCardCount > 2) {
         await interaction.editReply({
-          content: 'Classe já escolhida. Por favor, escolha outra classe.',
+          content: "Classe já escolhida. Por favor, escolha outra classe.",
         });
         return;
       }
@@ -100,22 +100,22 @@ export default {
         new ActionRowBuilder<ButtonBuilder>().addComponents([
           new ButtonBuilder()
             .setCustomId(`game-gypsy-${GameID}`)
-            .setLabel('gypsy')
+            .setLabel("gypsy")
             .setStyle(ButtonStyle.Secondary),
           new ButtonBuilder()
             .setCustomId(`game-stalker-${GameID}`)
-            .setLabel('stalker')
+            .setLabel("stalker")
             .setStyle(ButtonStyle.Secondary),
           new ButtonBuilder()
             .setCustomId(`game-sniper-${GameID}`)
-            .setLabel('sniper')
+            .setLabel("sniper")
             .setStyle(ButtonStyle.Secondary),
         ]);
 
       // Intensionally not waiting here :D
       // TODO: handle this later
       interaction.followUp({
-        content: 'Escolha uma das classes Wild Card abaixo',
+        content: "Escolha uma das classes Wild Card abaixo",
         ephemeral: true,
         components: [wildCardActionRow],
       });
@@ -130,7 +130,7 @@ export default {
     matchData.matchPlayers.push(player);
 
     const updatedMatchData = await (await db())
-      .collection<MatchType>('games')
+      .collection<MatchType>("games")
       .updateOne(
         {
           matchId: GameID,
@@ -145,7 +145,7 @@ export default {
 
     if (updatedMatchData.modifiedCount === 0) {
       await interaction.editReply({
-        content: 'Erro ao atualizar o jogo.',
+        content: "Erro ao atualizar o jogo.",
       });
       return;
     }
@@ -157,31 +157,31 @@ export default {
     const oldEmbed = interaction.message.embeds[0];
     if (!oldEmbed) {
       await interaction.editReply({
-        content: 'Erro ao atualizar o jogo.',
+        content: "Erro ao atualizar o jogo.",
       });
       return;
     }
 
     let newEmbedFields = oldEmbed.fields;
-    newEmbedFields = newEmbedFields.map(field => {
-      if (field.name.toLowerCase() === oldClassofPlayer.replace('_', ' ')) {
+    newEmbedFields = newEmbedFields.map((field) => {
+      if (field.name.toLowerCase() === oldClassofPlayer.replace("_", " ")) {
         const tClass = field.name
           .toLowerCase()
-          .replace(' ', '_') as PlayerClassesType;
+          .replace(" ", "_") as PlayerClassesType;
 
         if (classCount.get(tClass) === 1) {
-          field.value = 'Ninguém se juntou ainda';
+          field.value = "Ninguém se juntou ainda";
         } else {
           field.value = field.value.replace(
             `- ${interaction.user.username}\n`,
-            '',
+            "",
           );
         }
       }
 
-      if (field.name.toLowerCase() === classSelected.replace('_', ' ')) {
-        if (field.value.startsWith('Ninguém')) {
-          field.value = '';
+      if (field.name.toLowerCase() === classSelected.replace("_", " ")) {
+        if (field.value.startsWith("Ninguém")) {
+          field.value = "";
         }
 
         return {
@@ -207,21 +207,20 @@ export default {
       newEmbed = newEmbed.setColor(Colors.Green);
       const startButton = new ButtonBuilder()
         .setCustomId(`game-start-${GameID}`)
-        .setLabel('Iniciar Jogo')
+        .setLabel("Iniciar Jogo")
         .setStyle(ButtonStyle.Success);
 
       const abortButton = new ButtonBuilder()
         .setCustomId(`game-abort-${GameID}`)
-        .setLabel('Cancelar Jogo')
-        .setStyle(ButtonStyle.Danger)
-        .setDisabled(true);
+        .setLabel("Cancelar Jogo")
+        .setStyle(ButtonStyle.Danger);
 
       await interaction.message.edit({
-        content: 'O jogo está pronto para começar!',
+        content: "O jogo está pronto para começar!",
         components: [
           new ActionRowBuilder<ButtonBuilder>().addComponents([
             startButton,
-            abortButton,
+            abortButton.setDisabled(true),
           ]),
         ],
         embeds: [newEmbed],

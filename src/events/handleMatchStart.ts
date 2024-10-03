@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -9,10 +10,9 @@ import {
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
-} from "discord.js";
-import type { MatchType, PlayerClassesType, PlayerType } from "../types/match";
-import db from "../utils/database";
-import { randomInt } from "node:crypto";
+} from 'discord.js';
+import type { MatchType, PlayerClassesType, PlayerType } from '../types/match';
+import db from '../utils/database';
 
 export default {
   name: Events.InteractionCreate,
@@ -22,21 +22,21 @@ export default {
     if (!interaction.isButton()) return;
     if (!interaction.guild) return;
 
-    if (!interaction.customId.startsWith("game-start-")) return;
+    if (!interaction.customId.startsWith('game-start-')) return;
     await interaction.deferReply({ ephemeral: false });
 
-    const GameID = interaction.customId.split("-")[2];
+    const GameID = interaction.customId.split('-')[2];
     await interaction.editReply({
       content: `Você começou o jogo! gameID: ${GameID}`,
     });
 
     const matchData = await (await db())
-      .collection<MatchType>("games")
+      .collection<MatchType>('games')
       .findOne({ matchId: GameID });
 
     if (!matchData) {
       await interaction.editReply({
-        content: "Jogo não encontrado.",
+        content: 'Jogo não encontrado.',
       });
       await interaction.message.delete();
       return;
@@ -44,17 +44,17 @@ export default {
 
     const startButton = new ButtonBuilder()
       .setCustomId(`game-start-${GameID}`)
-      .setLabel("Iniciar Jogo")
+      .setLabel('Iniciar Jogo')
       .setStyle(ButtonStyle.Success);
 
     const abortButton = new ButtonBuilder()
       .setCustomId(`game-abort-${GameID}`)
-      .setLabel("Cancelar Jogo")
+      .setLabel('Cancelar Jogo')
       .setStyle(ButtonStyle.Danger);
 
     if (matchData.isStarted) {
       await interaction.editReply({
-        content: "O jogo já começou.",
+        content: 'O jogo já começou.',
       });
 
       await interaction.message.edit({
@@ -96,7 +96,7 @@ export default {
       }
     }
 
-    const data = await (await db()).collection<MatchType>("games").updateOne(
+    const data = await (await db()).collection<MatchType>('games').updateOne(
       { matchId: GameID },
       {
         $set: {
@@ -110,7 +110,7 @@ export default {
 
     if (data.modifiedCount === 0) {
       await interaction.editReply({
-        content: "Erro ao iniciar o jogo.",
+        content: 'Erro ao iniciar o jogo.',
       });
       return;
     }
@@ -118,7 +118,7 @@ export default {
     const prevEmbed = interaction.message.embeds[0];
     if (!prevEmbed) {
       await interaction.editReply({
-        content: "Erro ao iniciar o jogo.",
+        content: 'Erro ao iniciar o jogo.',
       });
       return;
     }
@@ -126,42 +126,42 @@ export default {
     const prevEmbedFields = prevEmbed.fields;
 
     const redTeamPlayers = redTeam
-      .map((player) => {
+      .map(player => {
         return `${player.PlayerName} - ${player.PlayerClass}`;
       })
-      .join("\n");
+      .join('\n');
 
     const blueTeamPlayers = blueTeam
-      .map((player) => {
+      .map(player => {
         return `${player.PlayerName} - ${player.PlayerClass}`;
       })
-      .join("\n");
+      .join('\n');
 
     const redTeamMention = redTeam
-      .map((player) => {
+      .map(player => {
         return `<@${player.PlayerID}>`;
       })
-      .join(", ");
+      .join(', ');
 
     const blueTeamMention = blueTeam
-      .map((player) => {
+      .map(player => {
         return `<@${player.PlayerID}>`;
       })
-      .join(", ");
+      .join(', ');
 
     const newEmbed = new EmbedBuilder()
-      .setTitle("Jogo Iniciado!")
+      .setTitle('Jogo Iniciado!')
       .setDescription(`${prevEmbed.description}`)
       .setColor(prevEmbed.color)
       .setFields([
         ...prevEmbedFields,
         {
-          name: "Red Team",
+          name: 'Red Team',
           value: redTeamPlayers,
           inline: false,
         },
         {
-          name: "Blue Team",
+          name: 'Blue Team',
           value: blueTeamPlayers,
           inline: false,
         },

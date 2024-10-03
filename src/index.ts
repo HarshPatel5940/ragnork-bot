@@ -1,11 +1,11 @@
-import { Client } from "discord.js";
-import config from "./config";
+import { Client } from 'discord.js';
+import config from './config';
 import {
   getCommands,
   loadCommands,
   loadEvents,
   registerSlashCommands,
-} from "./utils";
+} from './utils';
 
 async function initialiseBot() {
   const client = new Client({

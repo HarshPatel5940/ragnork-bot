@@ -6,17 +6,17 @@ import {
   EmbedBuilder,
   SlashCommandBuilder,
   StringSelectMenuBuilder,
-} from 'discord.js';
-import { ulid } from 'ulid';
-import type { Command } from '../interface';
-import { MyEmojis } from '../types/emojis';
-import { type MatchType, playerClasses, playerClasses2 } from '../types/match';
-import db from '../utils/database';
+} from "discord.js";
+import { ulid } from "ulid";
+import type { Command } from "../interface";
+import { MyEmojis } from "../types/emojis";
+import { type MatchType, playerClasses, playerClasses2 } from "../types/match";
+import db from "../utils/database";
 
 export default {
   data: new SlashCommandBuilder()
-    .setName('início-jogo')
-    .setDescription('Comece um novo jogo onde todos possam participar')
+    .setName("início-jogo")
+    .setDescription("Comece um novo jogo onde todos possam participar")
     .setDMPermission(false),
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -29,7 +29,7 @@ export default {
     const channel = interaction.guild.channels.cache.get(interaction.channelId);
     if (channel?.type !== ChannelType.GuildText) {
       await interaction.reply({
-        content: 'Este comando só pode ser utilizado em um canal de texto.',
+        content: "Este comando só pode ser utilizado em um canal de texto.",
         ephemeral: true,
       });
       return;
@@ -48,42 +48,42 @@ export default {
       .addFields([
         {
           name: playerClasses2.scholar,
-          value: 'Ninguém se juntou ainda',
+          value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
           name: playerClasses2.champion,
-          value: 'Ninguém se juntou ainda',
+          value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
           name: playerClasses2.paladin,
-          value: 'Ninguém se juntou ainda',
+          value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
           name: playerClasses2.high_priest,
-          value: 'Ninguém se juntou ainda',
+          value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
           name: playerClasses2.high_wizard,
-          value: 'Ninguém se juntou ainda',
+          value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
           name: playerClasses2.minstrel,
-          value: 'Ninguém se juntou ainda',
+          value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
           name: playerClasses2.wildCardClass,
-          value: 'Ninguém se juntou ainda',
+          value: "Ninguém se juntou ainda",
           inline: true,
         },
         {
-          name: 'O jogo começou?',
-          value: 'Não',
+          name: "O jogo começou?",
+          value: "Não",
           inline: false,
         },
       ])
@@ -91,7 +91,7 @@ export default {
 
     const dropdown = new StringSelectMenuBuilder()
       .setCustomId(`game-${matchID}`)
-      .setPlaceholder('Escolha uma classe')
+      .setPlaceholder("Escolha uma classe")
       .addOptions([
         {
           label: playerClasses.scholar,
@@ -119,7 +119,7 @@ export default {
         },
         {
           label: playerClasses.wildCardClass,
-          value: `g-wild_cards-${matchID}`,
+          value: `g-7th-${matchID}`,
         },
       ]);
 
@@ -148,19 +148,19 @@ export default {
     } as MatchType;
 
     const data = await (await db())
-      .collection<MatchType>('games')
+      .collection<MatchType>("games")
       .insertOne(match);
 
     if (!data.insertedId) {
       await interaction.editReply({
-        content: 'Erro ao iniciar o jogo. Tente novamente.',
+        content: "Erro ao iniciar o jogo. Tente novamente.",
       });
       await message.delete();
       return;
     }
 
     await interaction.editReply({
-      content: 'Jogo iniciado com sucesso!',
+      content: "Jogo iniciado com sucesso!",
     });
 
     await message.edit({

@@ -22,7 +22,8 @@ export default {
     if (!interaction.customId.startsWith('game-')) return;
     if (
       interaction.customId.startsWith('game-win-') ||
-      interaction.customId.startsWith('game-start-')
+      interaction.customId.startsWith('game-start-') ||
+      interaction.customId.startsWith('game-abort-')
     ) {
       return;
     }

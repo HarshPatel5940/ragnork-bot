@@ -1,4 +1,4 @@
-import { Emoji, Events, GuildEmoji, type Interaction } from 'discord.js';
+import { Events, type Interaction } from 'discord.js';
 import type { DiscordUser } from '../types';
 import { MyEmojis } from '../types/emojis';
 import db from '../utils/database';

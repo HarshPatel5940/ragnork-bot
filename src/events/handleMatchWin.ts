@@ -1,7 +1,7 @@
-import { Events, type Interaction } from "discord.js";
-import { MyEmojis } from "../types/emojis";
-import type { MatchType, PlayerType } from "../types/match";
-import db from "../utils/database";
+import { Events, type Interaction } from 'discord.js';
+import { MyEmojis } from '../types/emojis';
+import type { MatchType, PlayerType } from '../types/match';
+import db from '../utils/database';
 
 export default {
   name: Events.InteractionCreate,
@@ -11,12 +11,12 @@ export default {
     if (!interaction.isStringSelectMenu()) return;
     if (!interaction.guild) return;
     if (!interaction.message) return;
-    if (!interaction.customId.startsWith("game-win-")) return;
+    if (!interaction.customId.startsWith('game-win-')) return;
     await interaction.deferReply({ ephemeral: false });
 
     const interactionValues = interaction.values[0];
     if (!interactionValues) return;
-    const splitedInteractionValues = interactionValues.split("-");
+    const splitedInteractionValues = interactionValues.split('-');
     const winnerTeam = splitedInteractionValues[2];
     const GameID = splitedInteractionValues[3];
     if (!winnerTeam || !GameID) return;
@@ -26,11 +26,11 @@ export default {
     });
 
     const matchData = await (await db())
-      .collection<MatchType>("games")
+      .collection<MatchType>('games')
       .findOne({ matchId: GameID });
     if (!matchData) {
       await interaction.editReply({
-        content: "Jogo não encontrado.",
+        content: 'Jogo não encontrado.',
       });
       await interaction.message.delete();
       return;
@@ -49,23 +49,23 @@ export default {
 
     // now update in mongodb the match winner team
     const updatedMatchData = await (await db())
-      .collection<MatchType>("games")
+      .collection<MatchType>('games')
       .findOneAndUpdate(
         { matchId: GameID },
         {
           $set: {
             matchWinner: winnerTeam,
-            isDraw: winnerTeam === "draw",
+            isDraw: winnerTeam === 'draw',
             isCompleted: true,
           },
         },
-        { returnDocument: "after" },
+        { returnDocument: 'after' },
       );
 
     if (!updatedMatchData || !updatedMatchData.isCompleted) {
       await interaction.editReply({
         content:
-          "Erro ao atualizar o jogo. Entre em contato com o desenvolvedor",
+          'Erro ao atualizar o jogo. Entre em contato com o desenvolvedor',
       });
       return;
     }
@@ -79,14 +79,14 @@ export default {
           },
         })),
       ];
-      await (await db()).collection("players").bulkWrite(bulkOps);
+      await (await db()).collection('players').bulkWrite(bulkOps);
     } else {
       const winnerTeamPlayers =
-        winnerTeam === "red"
+        winnerTeam === 'red'
           ? updatedMatchData.redTeam
           : updatedMatchData.blueTeam;
       const loserTeamPlayers =
-        winnerTeam === "red"
+        winnerTeam === 'red'
           ? updatedMatchData.blueTeam
           : updatedMatchData.redTeam;
 
@@ -104,7 +104,7 @@ export default {
               {
                 $set: {
                   points: {
-                    $max: [{ $subtract: ["$points", 10] }, 0],
+                    $max: [{ $subtract: ['$points', 10] }, 0],
                   },
                 },
               },
@@ -113,7 +113,7 @@ export default {
         })),
       ];
 
-      await (await db()).collection("players").bulkWrite(bulkOps);
+      await (await db()).collection('players').bulkWrite(bulkOps);
     }
 
     await interaction.editReply({
@@ -123,7 +123,7 @@ export default {
     await interaction.message.edit({
       content: `**O jogo foi concluído!**\n\n
 
-      > ${updatedMatchData.isDraw ? "A partida está empatada" : `A partida foi vencida pela equipe ${winnerTeam}`}  ${MyEmojis.Sparkels}`,
+      > ${updatedMatchData.isDraw ? 'A partida está empatada' : `A partida foi vencida pela equipe ${winnerTeam}`}  ${MyEmojis.Sparkels}`,
       components: [],
     });
     return;

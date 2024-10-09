@@ -1,4 +1,5 @@
 import { Events, type Interaction } from 'discord.js';
+import type { DiscordUser } from '../types';
 import { MyEmojis } from '../types/emojis';
 import type { MatchType, PlayerType } from '../types/match';
 import db from '../utils/database';
@@ -74,8 +75,11 @@ export default {
       const bulkOps = [
         ...updatedMatchData.matchPlayers.map((player: PlayerType) => ({
           updateOne: {
-            filter: { PlayerID: player.PlayerID },
-            update: { $inc: { points: 5 } },
+            filter: { userId: player.PlayerID },
+            update: {
+              $inc: { InGameScore: 5, GamesPlayed: 1, GamesDraw: 1 },
+              updatedAt: new Date(),
+            },
           },
         })),
       ];
@@ -93,27 +97,27 @@ export default {
       const bulkOps = [
         ...winnerTeamPlayers.map((player: PlayerType) => ({
           updateOne: {
-            filter: { PlayerID: player.PlayerID },
-            update: { $inc: { points: 20 } },
+            filter: { userId: player.PlayerID },
+            update: {
+              $inc: { InGameScore: 20, GamesPlayed: 1, GamesWin: 1 },
+              $set: { updatedAt: new Date() },
+            },
           },
         })),
         ...loserTeamPlayers.map((player: PlayerType) => ({
           updateOne: {
-            filter: { PlayerID: player.PlayerID },
-            update: [
-              {
-                $set: {
-                  points: {
-                    $max: [{ $subtract: ['$points', 10] }, 0],
-                  },
-                },
-              },
-            ],
+            filter: { userId: player.PlayerID },
+            update: {
+              $inc: { InGameScore: -10, GamesPlayed: 1, GamesLose: 1 },
+              $set: { updatedAt: new Date() },
+            },
           },
         })),
       ];
-
-      await (await db()).collection('players').bulkWrite(bulkOps);
+      console.trace(winnerTeamPlayers, loserTeamPlayers, bulkOps);
+      await (await db())
+        .collection<DiscordUser>('discord-users')
+        .bulkWrite(bulkOps);
     }
 
     await interaction.editReply({
@@ -121,7 +125,7 @@ export default {
     });
 
     await interaction.message.edit({
-      content: `**O jogo foi concluído!**\n\n
+      content: `**O jogo foi concluído!**
 
       > ${updatedMatchData.isDraw ? 'A partida está empatada' : `A partida foi vencida pela equipe ${winnerTeam}`}  ${MyEmojis.Sparkels}`,
       components: [],

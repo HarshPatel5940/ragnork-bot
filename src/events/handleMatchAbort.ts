@@ -48,9 +48,7 @@ export default {
       .findOneAndUpdate(
         { matchId: GameID },
         {
-          $set: {
-            isAborted: true,
-          },
+          isAborted: true,
         },
         { returnDocument: 'after' },
       );

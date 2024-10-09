@@ -64,10 +64,6 @@ export default {
           value: `game-win-blue-${GameID}`,
           emoji: '🔵',
         },
-        {
-          label: 'Declarar empate',
-          value: `game-win-draw-${GameID}`,
-        },
       ]);
 
     if (matchData.isStarted) {
@@ -93,7 +89,6 @@ export default {
 
     for (const player of matchPlayers) {
       const players = matchClassesMap.get(player.PlayerClass) || [];
-      console.log(players, player, typeof player);
 
       matchClassesMap.set(player.PlayerClass, [...players, player]);
     }
@@ -113,7 +108,7 @@ export default {
         blueTeam.push(players[t2Player]);
       }
     }
-    console.log(redTeam, blueTeam);
+
     const data = await (await db()).collection<MatchType>('games').updateOne(
       { matchId: GameID },
       {
@@ -181,7 +176,7 @@ export default {
         return `<@${player.PlayerID}>`;
       })
       .join(', ');
-    console.log('map done');
+
     const embed = new EmbedBuilder()
       .setTitle('Jogo Iniciado!')
       .setDescription(`${prevEmbed.description}`)
@@ -204,7 +199,7 @@ export default {
           inline: false,
         },
       );
-    console.log('embed done');
+
     await interaction.message.edit({
       content: `Red Team: ${redTeamMention}\nBlue Team: ${blueTeamMention}`,
       embeds: [embed, newEmbed],

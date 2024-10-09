@@ -20,21 +20,19 @@ export default {
         .findOneAndUpdate(
           { userId: interaction.user.id },
           {
-            $set: {
-              username: interaction.user.username,
+            username: interaction.user.username,
 
-              InGameUsername: name,
-              InGameScore: 0,
-              InGameRank: 'Ferro1',
-              isActive: false,
+            InGameUsername: name,
+            InGameScore: 0,
+            InGameRank: 'Ferro1',
+            isActive: false,
 
-              GamesPlayed: 0,
-              GamesWon: 0,
-              GamesLost: 0,
-              GamesDraw: 0,
+            GamesPlayed: 0,
+            GamesWon: 0,
+            GamesLose: 0,
+            GamesDraw: 0,
 
-              updatedAt: new Date(),
-            },
+            updatedAt: new Date(),
           },
           { upsert: true, returnDocument: 'after' },
         );

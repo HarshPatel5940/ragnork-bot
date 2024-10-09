@@ -39,7 +39,7 @@ export const DiscordUserSchema = z.object({
   isActive: z.boolean().optional().default(false),
   InGameUsername: z.string().max(50),
 
-  InGameScore: z.number().min(0).max(50),
+  InGameScore: z.number().min(0).max(50).default(0),
   InGameRank: z
     .enum(Object.keys(UserRanks) as [UserRankTypes, ...UserRankTypes[]])
     .optional()

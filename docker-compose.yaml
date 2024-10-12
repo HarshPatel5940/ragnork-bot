@@ -7,7 +7,7 @@ services:
     networks:
       - my_network
   db:
-    image: mongo
+    image: mongo:latest
     ports:
       - "27017:27017"
     restart: always

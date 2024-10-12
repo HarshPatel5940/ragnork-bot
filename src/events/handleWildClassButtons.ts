@@ -1,6 +1,6 @@
-import { ButtonInteraction, Events, type Interaction } from 'discord.js';
-import type { MatchType, PlayerType, wildCardClassType } from '../types/match';
-import db from '../utils/database';
+import { Events, type Interaction } from "discord.js";
+import type { MatchType, PlayerType, wildCardClassType } from "../types/match";
+import db from "../utils/database";
 
 export default {
   name: Events.InteractionCreate,
@@ -11,35 +11,35 @@ export default {
     if (!interaction.guild) return;
 
     const customId = interaction.customId;
-    if (!customId.startsWith('game-')) return;
+    if (!customId.startsWith("game-")) return;
 
-    const [, wildCardClass, GameID] = customId.split('-');
+    const [, wildCardClass, GameID] = customId.split("-");
     if (!wildCardClass || !GameID) return;
-    if (!['gypsy', 'stalker', 'sniper'].includes(wildCardClass)) return;
+    if (!["gypsy", "stalker", "sniper"].includes(wildCardClass)) return;
 
     await interaction.deferReply({ ephemeral: true });
 
     const matchData = await (await db())
-      .collection<MatchType>('games')
+      .collection<MatchType>("games")
       .findOne({ matchId: GameID });
 
     if (!matchData) {
       await interaction.editReply({
-        content: 'Jogo não encontrado.',
+        content: "Jogo não encontrado.",
       });
       return;
     }
 
     if (matchData.isAborted) {
       await interaction.editReply({
-        content: 'Jogo abortado.',
+        content: "Jogo abortado.",
       });
       return;
     }
 
     if (matchData.isCompleted) {
       await interaction.editReply({
-        content: 'Jogo finalizado.',
+        content: "Jogo finalizado.",
       });
       return;
     }
@@ -77,7 +77,7 @@ export default {
     });
 
     const updatedMatchData = await (await db())
-      .collection<MatchType>('games')
+      .collection<MatchType>("games")
       .updateOne(
         { matchId: GameID },
         {
@@ -91,7 +91,7 @@ export default {
 
     if (updatedMatchData.modifiedCount === 0) {
       await interaction.editReply({
-        content: 'Erro ao atualizar o jogo.',
+        content: "Erro ao atualizar o jogo.",
       });
       return;
     }

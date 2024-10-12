@@ -1,7 +1,6 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { Command } from '../interface';
 import type { DiscordUser, UserRankTypes } from '../types';
-import { UserRanks } from '../types/users';
 import db from '../utils/database';
 
 export default {
@@ -37,15 +36,7 @@ export default {
     });
 
     const userScore = userRecord.InGameScore;
-    let userRank: UserRankTypes = 'Ferro1';
-
-    for (const [rank, score] of Object.entries(UserRanks)) {
-      if (userScore >= score) {
-        userRank = rank as UserRankTypes;
-      } else {
-        break;
-      }
-    }
+    const userRank: UserRankTypes = userRecord.InGameRank;
 
     const embed = new EmbedBuilder()
       .setTitle(`Rank de ${userRecord.InGameUsername}`)

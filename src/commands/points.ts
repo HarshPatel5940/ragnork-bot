@@ -1,6 +1,6 @@
 import { Colors, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import type { Command } from '../interface';
-import type { DiscordUser } from '../types';
+import { type DiscordUser, type UserRankTypes, UserRanks } from '../types';
 import { MyEmojis } from '../types/emojis';
 import db from '../utils/database';
 
@@ -77,6 +77,16 @@ export default {
         ? userRecord.InGameScore + points
         : Math.max(userRecord.InGameScore - points, 0);
 
+    let newRank: UserRankTypes = 'Ferro1';
+
+    for (const [rank, score] of Object.entries(UserRanks)) {
+      if (newPoints >= score) {
+        newRank = rank as UserRankTypes;
+      } else {
+        break;
+      }
+    }
+
     const result = await (await db())
       .collection<DiscordUser>('discord-users')
       .updateOne(
@@ -84,6 +94,7 @@ export default {
         {
           $set: {
             InGameScore: newPoints,
+            InGameRank: newRank,
           },
         },
       );

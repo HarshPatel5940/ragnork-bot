@@ -1,5 +1,5 @@
 import { Events, type Interaction } from 'discord.js';
-import type { DiscordUser } from '../types';
+import { type DiscordUser, type UserRankTypes, UserRanks } from '../types';
 import { MyEmojis } from '../types/emojis';
 import type { MatchType, PlayerType } from '../types/match';
 import db from '../utils/database';
@@ -48,7 +48,6 @@ export default {
       return;
     }
 
-    // now update in mongodb the match winner team
     const updatedMatchData = await (await db())
       .collection<MatchType>('games')
       .findOneAndUpdate(
@@ -71,30 +70,32 @@ export default {
       return;
     }
 
+    let bulkOps = [];
+
     if (updatedMatchData.isDraw) {
-      const bulkOps = [
+      bulkOps = [
         ...updatedMatchData.matchPlayers.map((player: PlayerType) => ({
           updateOne: {
             filter: { userId: player.PlayerID },
             update: {
               $inc: { InGameScore: 5, GamesPlayed: 1, GamesDraw: 1 },
-              updatedAt: new Date(),
+              $set: { updatedAt: new Date() },
             },
           },
         })),
       ];
-      await (await db()).collection('players').bulkWrite(bulkOps);
     } else {
       const winnerTeamPlayers =
         winnerTeam === 'red'
           ? updatedMatchData.redTeam
           : updatedMatchData.blueTeam;
+
       const loserTeamPlayers =
         winnerTeam === 'red'
           ? updatedMatchData.blueTeam
           : updatedMatchData.redTeam;
 
-      const bulkOps = [
+      bulkOps = [
         ...winnerTeamPlayers.map((player: PlayerType) => ({
           updateOne: {
             filter: { userId: player.PlayerID },
@@ -114,21 +115,66 @@ export default {
           },
         })),
       ];
-      await (await db())
-        .collection<DiscordUser>('discord-users')
-        .bulkWrite(bulkOps);
     }
 
-    await interaction.editReply({
-      content: `**Os pontos dos jogadores foram atualizados!**! ${MyEmojis.Sparkels}`,
-    });
+    const result1 = await (await db())
+      .collection<DiscordUser>('discord-users')
+      .bulkWrite(bulkOps);
+
+    if (!result1) {
+      await interaction.editReply({
+        content: 'Erro ao atualizar os pontos dos jogadores.',
+      });
+      return;
+    }
 
     await interaction.message.edit({
       content: `**O jogo foi concluído!**
 
-      > ${updatedMatchData.isDraw ? 'A partida está empatada' : `A partida foi vencida pela equipe ${winnerTeam}`}  ${MyEmojis.Sparkels}`,
+        > ${updatedMatchData.isDraw ? 'A partida está empatada' : `A partida foi vencida pela equipe ${winnerTeam}`}  ${MyEmojis.Sparkels}`,
       components: [],
     });
+
+    const allPlayers = updatedMatchData.matchPlayers;
+    const userIds = allPlayers.map((player: PlayerType) => player.PlayerID);
+
+    const userDocs = await (await db())
+      .collection<DiscordUser>('discord-users')
+      .find({ userId: { $in: userIds } })
+      .toArray();
+
+    const rankUpdateOps = userDocs.map(userDoc => {
+      let userRank: UserRankTypes = 'Ferro1';
+      const userScore = userDoc.InGameScore || 0;
+
+      for (const [rank, score] of Object.entries(UserRanks)) {
+        if (userScore >= score) {
+          userRank = rank as UserRankTypes;
+        } else {
+          break;
+        }
+      }
+
+      return {
+        updateOne: {
+          filter: { userId: userDoc.userId },
+          update: {
+            $set: { InGameRank: userRank },
+          },
+        },
+      };
+    });
+
+    if (rankUpdateOps.length > 0) {
+      await (await db())
+        .collection<DiscordUser>('discord-users')
+        .bulkWrite(rankUpdateOps);
+    }
+
+    await interaction.editReply({
+      content: `**Os pontos e ranks dos jogadores foram atualizados!**! ${MyEmojis.Sparkels}`,
+    });
+
     return;
   },
 };

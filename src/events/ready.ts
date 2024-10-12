@@ -10,7 +10,7 @@ export default {
     // Set the client user's activity
 
     client.user?.setActivity({
-      name: "jogos | Bot desenvolvido por HarshPatel5940",
+      name: "HarshPatel5940 criando bots",
       type: ActivityType.Watching,
     });
   },
